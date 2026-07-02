@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AlterForm — конструктор образів</title>
+    <meta name="description" content="AlterForm — 2D-конструктор образів: манекени, одяг, перуки, макіяж та аксесуари." />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">ALTERFORM / PERSONA WARDROBE</p>
+          <h1>Конструктор образів</h1>
+          <p class="hero-text">
+            Обери манекен, наклади шари одягу, перуки, макіяжу та аксесуарів — і збери власне альтер-его.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <button class="button ghost" id="saveLookBtn">Зберегти образ</button>
+          <button class="button primary" id="exportBtn">Експорт PNG</button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="panel left-panel">
+          <div class="panel-section">
+            <div class="section-title">Манекени</div>
+            <div class="mannequin-list" id="mannequinList"></div>
+          </div>
+
+          <div class="panel-section">
+            <div class="section-title">Збережені образи</div>
+            <div class="saved-list" id="savedLooks"></div>
+          </div>
+        </aside>
+
+        <section class="stage-card">
+          <div class="stage-toolbar">
+            <div>
+              <span class="stage-label">Поточний образ</span>
+              <h2 id="lookTitle">Base Persona</h2>
+            </div>
+            <button class="button subtle" id="clearBtn">Очистити</button>
+          </div>
+
+          <div class="stage-wrap">
+            <div class="stage" id="stage"></div>
+          </div>
+        </section>
+
+        <aside class="panel right-panel">
+          <div class="panel-section">
+            <div class="section-title">Категорії</div>
+            <div class="category-tabs" id="categoryTabs"></div>
+          </div>
+
+          <div class="panel-section grow">
+            <div class="section-title" id="itemsTitle">Елементи</div>
+            <div class="items-grid" id="itemsGrid"></div>
+          </div>
+
+          <div class="panel-section selected-panel">
+            <div class="section-title">Обрані шари</div>
+            <div class="selected-list" id="selectedList"></div>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
