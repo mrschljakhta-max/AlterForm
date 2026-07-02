@@ -1,66 +1,18 @@
-const STAGE_WIDTH = 700;
-const STAGE_HEIGHT = 1100;
+const catalog = window.ALTERFORM_CATALOG;
 
-const mannequins = [
-  {
-    id: "muse-light",
-    name: "Muse Light",
-    subtitle: "м’який fashion-силует",
-    image: "assets/mannequins/muse-light.svg"
-  },
-  {
-    id: "andro-form",
-    name: "Andro Form",
-    subtitle: "андрогінна база",
-    image: "assets/mannequins/andro-form.svg"
-  },
-  {
-    id: "noir-curvy",
-    name: "Noir Curvy",
-    subtitle: "виразніший силует",
-    image: "assets/mannequins/noir-curvy.svg"
-  }
-];
+if (!catalog) {
+  throw new Error("ALTERFORM_CATALOG is missing. Make sure catalog.js is loaded before app.js.");
+}
 
-const categories = [
-  { id: "hair", name: "Волосся" },
-  { id: "makeup", name: "Макіяж" },
-  { id: "dress", name: "Сукні" },
-  { id: "top", name: "Верх" },
-  { id: "bottom", name: "Низ" },
-  { id: "shoes", name: "Взуття" },
-  { id: "accessory", name: "Аксесуари" }
-];
+const STAGE_WIDTH = catalog.stage?.width || 700;
+const STAGE_HEIGHT = catalog.stage?.height || 1100;
 
-const clothes = [
-  { id: "hair-copper", name: "Мідне довге волосся", category: "hair", image: "assets/clothes/hair-copper.svg", zIndex: 70 },
-  { id: "hair-noir", name: "Чорна коротка укладка", category: "hair", image: "assets/clothes/hair-noir.svg", zIndex: 70 },
-  { id: "hair-blonde", name: "Світла перука", category: "hair", image: "assets/clothes/hair-blonde.svg", zIndex: 70 },
-
-  { id: "makeup-red", name: "Червона помада", category: "makeup", image: "assets/clothes/makeup-red.svg", zIndex: 86 },
-  { id: "makeup-smoky", name: "Smoky eyes", category: "makeup", image: "assets/clothes/makeup-smoky.svg", zIndex: 84 },
-  { id: "makeup-soft", name: "М’який нюд", category: "makeup", image: "assets/clothes/makeup-soft.svg", zIndex: 84 },
-
-  { id: "dress-black", name: "Чорна сукня Noir", category: "dress", image: "assets/clothes/dress-black.svg", zIndex: 42 },
-  { id: "dress-bordeaux", name: "Бордова сукня", category: "dress", image: "assets/clothes/dress-bordeaux.svg", zIndex: 42 },
-  { id: "dress-slip", name: "Сатинова сукня", category: "dress", image: "assets/clothes/dress-slip.svg", zIndex: 42 },
-
-  { id: "top-corset", name: "Темний корсет", category: "top", image: "assets/clothes/top-corset.svg", zIndex: 50 },
-  { id: "top-silk", name: "Шовкова блуза", category: "top", image: "assets/clothes/top-silk.svg", zIndex: 50 },
-
-  { id: "bottom-skirt", name: "Чорна спідниця", category: "bottom", image: "assets/clothes/bottom-skirt.svg", zIndex: 35 },
-  { id: "bottom-trousers", name: "Високі штани", category: "bottom", image: "assets/clothes/bottom-trousers.svg", zIndex: 35 },
-
-  { id: "shoes-heels", name: "Підбори", category: "shoes", image: "assets/clothes/shoes-heels.svg", zIndex: 62 },
-  { id: "shoes-boots", name: "Високі чоботи", category: "shoes", image: "assets/clothes/shoes-boots.svg", zIndex: 62 },
-
-  { id: "acc-choker", name: "Чокер", category: "accessory", image: "assets/clothes/acc-choker.svg", zIndex: 92 },
-  { id: "acc-glasses", name: "Темні окуляри", category: "accessory", image: "assets/clothes/acc-glasses.svg", zIndex: 94 },
-  { id: "acc-earrings", name: "Кільця-сережки", category: "accessory", image: "assets/clothes/acc-earrings.svg", zIndex: 91 }
-];
+const mannequins = catalog.mannequins || [];
+const categories = catalog.categories || [];
+const clothes = catalog.items || [];
 
 let selectedMannequin = mannequins[0];
-let activeCategory = categories[0].id;
+let activeCategory = categories[0]?.id || null;
 let selectedItems = [];
 
 const els = {
@@ -92,14 +44,14 @@ function renderMannequins() {
       <img class="thumb" src="${m.image}" alt="${m.name}">
       <span>
         <span class="card-title">${m.name}</span>
-        <span class="card-subtitle">${m.subtitle}</span>
+        <span class="card-subtitle">${m.subtitle || "базовий силует"}</span>
       </span>
     </button>
   `).join("");
 
   els.mannequinList.querySelectorAll("[data-mannequin]").forEach(btn => {
     btn.addEventListener("click", () => {
-      selectedMannequin = mannequins.find(m => m.id === btn.dataset.mannequin);
+      selectedMannequin = mannequins.find(m => m.id === btn.dataset.mannequin) || mannequins[0];
       selectedItems = [];
       toast("Манекен змінено. Шари очищено.");
       render();
@@ -126,6 +78,11 @@ function renderItems() {
   const categoryItems = clothes.filter(item => item.category === activeCategory);
   els.itemsTitle.textContent = category?.name || "Елементи";
 
+  if (!categoryItems.length) {
+    els.itemsGrid.innerHTML = `<div class="empty-note">У цій категорії поки немає елементів.</div>`;
+    return;
+  }
+
   els.itemsGrid.innerHTML = categoryItems.map(item => `
     <button class="item-card ${selectedItems.some(i => i.id === item.id) ? "active" : ""}" data-item="${item.id}">
       <img class="item-preview" src="${item.image}" alt="${item.name}">
@@ -141,12 +98,18 @@ function renderItems() {
 
 function toggleItem(itemId) {
   const item = clothes.find(i => i.id === itemId);
+  if (!item) return;
+
   const exists = selectedItems.some(i => i.id === itemId);
 
   if (exists) {
     selectedItems = selectedItems.filter(i => i.id !== itemId);
   } else {
-    selectedItems = selectedItems.filter(i => i.category !== item.category);
+    const replacementKeys = item.replaces?.length ? item.replaces : [item.category];
+    selectedItems = selectedItems.filter(existing => {
+      const existingKeys = existing.replaces?.length ? existing.replaces : [existing.category];
+      return !existingKeys.some(key => replacementKeys.includes(key));
+    });
     selectedItems.push(item);
   }
 
@@ -176,7 +139,7 @@ function renderSelected() {
       <div class="selected-row">
         <span>
           <span class="card-title">${item.name}</span>
-          <span class="card-subtitle">${categories.find(c => c.id === item.category)?.name}</span>
+          <span class="card-subtitle">${categories.find(c => c.id === item.category)?.name || item.category}</span>
         </span>
         <button title="Прибрати" data-remove="${item.id}">×</button>
       </div>
@@ -226,7 +189,7 @@ function saveLook() {
 function renderSavedLooks() {
   const looks = getSavedLooks();
   if (!looks.length) {
-    els.savedLooks.innerHTML = `<div class="empty-note">Збережені образи з’являться тут.</div>`;
+    els.savedLooks.innerHTML = `<div class="empty-note">Збережені образи з'являться тут.</div>`;
     return;
   }
 
@@ -276,7 +239,7 @@ async function exportPng() {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
 
-    const layers = [selectedMannequin, ...selectedItems.sort((a, b) => a.zIndex - b.zIndex)];
+    const layers = [selectedMannequin, ...[...selectedItems].sort((a, b) => a.zIndex - b.zIndex)];
     for (const layer of layers) {
       const img = await loadImage(layer.image);
       ctx.drawImage(img, 0, 0, STAGE_WIDTH, STAGE_HEIGHT);
